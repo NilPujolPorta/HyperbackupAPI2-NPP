@@ -6,12 +6,13 @@ import os
 
 from selenium import webdriver 
 from selenium.webdriver.chrome.options import Options
+import selenium
 import argparse
 import mysql.connector
 import yaml
 import wget
 
-__version__ ="0.1.0"
+__version__ ="0.1.1"
 
 def main(args=None):
 	ruta = os.path.dirname(os.path.abspath(__file__))
@@ -19,7 +20,6 @@ def main(args=None):
 	parser = argparse.ArgumentParser(description='')
 	parser.add_argument('-q', '--quiet', help='Nomes mostra els errors i el missatge de acabada per pantalla.', action="store_false")
 	parser.add_argument('--json-file', help='La ruta(fitxer inclos) a on es guardara el fitxer de dades json. Per defecte es:'+rutaJson, default=rutaJson, metavar='RUTA')
-	parser.add_argument('-tr','--tesseractpath', help='La ruta fins al fitxer tesseract.exe', default=ruta+'/tesseract/tesseract.exe', metavar='RUTA')
 	parser.add_argument('-g', '--graphicUI', help='Mostra el navegador graficament.', action="store_false")
 	parser.add_argument('-v', '--versio', help='Mostra la versio', action='version', version='HyperBackupAPI-NPP v'+__version__)
 	args = parser.parse_args(args)
@@ -92,9 +92,9 @@ def main(args=None):
 
 	options = Options()
 	if args.graphicUI:
-		#options.headless = True
-		#options.add_argument('--headless')
-		#options.add_argument('--disable-gpu')
+		options.headless = True
+		options.add_argument('--headless')
+		options.add_argument('--disable-gpu')
 		options.add_argument('window-size=1720x980')
 	browser = webdriver.Chrome(executable_path= ruta+"/chromedriver.exe", options = options)
 	for nas in resultatbd:
@@ -111,10 +111,33 @@ def main(args=None):
 		hypericon=browser.find_element(by="xpath", value='//*[@id="sds-desktop-shortcut"]/div/li[7]')
 		hypericon.click()
 		time.sleep(10)
-		ultimaCorrecte = browser.find_element(by="class name", value='last-bkp-version-link')
-		print(ultimaCorrecte.text)
-
-
+		nomsCopies = []
+		nomTots = browser.find_elements(by="class name", value="x-tree-node-anchor")
+		for nom in nomTots:
+			nomsCopies.append(nom.text)
+		ultimaCorrecte = []
+		statusCopies = []
+		roottreenode = browser.find_elements(by="class name", value="x-tree-node")
+		y=1
+		for treenode in roottreenode:								  #'/html/body/div[11]/div[14]/div[3]/div[1]/div/div/div/div[2]/div[     2    ]/div/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div/div
+			treenode.click()								      	  #'/html/body/div[11]/div[14]/div[3]/div[1]/div/div/div/div[2]/div[     1    ]/div/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div
+			time.sleep(2)									      	  #'/html/body/div[11]/div[14]/div[3]/div[1]/div/div/div/div[2]/div[     2    ]/div/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div
+			statusCopies.append(browser.find_element(by="xpath", value='/html/body/div[11]/div[14]/div[3]/div[1]/div/div/div/div[2]/div['+str(y)+']/div/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div').text)
+			if ((statusCopies[(y-1)]) != "Eliminando versiones de copia de seguridad...") and ((statusCopies[(y-1)]) !='Deleting backup versions...'):
+				ultimaCorrecte.append(browser.find_element(by="xpath", value='/html/body/div[11]/div[14]/div[3]/div[1]/div/div/div/div[2]/div['+str(y)+']/div/div/div[1]/div/div[2]/div/div/div[1]/div[2]/div[1]/div[2]/div/div/div[1]/span').text)
+			                                                            	 #/html/body/div[11]/div[14]/div[3]/div[1]/div/div/div/div[2]/div[     1    ]/div/div/div[1]/div/div[2]/div/div/div[1]/div[2]/div[1]/div[2]/div/div/div[1]/span
+			else:
+				ultimaCorrecte.append("Es sabra cuan acabi la copia actual")
+			y+=1
+		
+		
+		x = 0
+		while x < len(nomsCopies):
+			print(nomsCopies[x])
+			print("Status ultima copia: " + (statusCopies[x]))
+			print("Ultima copia correcte: " + (ultimaCorrecte[x]))
+			print()
+			x+=1
 
 if __name__ =='__main__':
     main()
