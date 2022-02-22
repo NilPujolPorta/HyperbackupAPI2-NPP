@@ -86,16 +86,15 @@ def main(args=None):
 
 	mycursor.execute("SELECT * FROM credencials")
 	resultatbd = mycursor.fetchall()
-	url = "https://ss0007ns0119.fr3.quickconnect.to/"
 
 
 	options = Options()
 	if args.graphicUI:
-		#options.headless = True
-		#options.add_argument('--headless')
-		#options.add_argument('--disable-gpu')
+		options.headless = True
+		options.add_argument('--headless')
+		options.add_argument('--disable-gpu')
 		options.add_argument('window-size=1720x980')
-		options.add_argument('log-level=1')#INFO = 0, WARNING = 1, LOG_ERROR = 2, LOG_FATAL = 3.
+	options.add_argument('log-level=2')#INFO = 0, WARNING = 1, LOG_ERROR = 2, LOG_FATAL = 3.
 	browser = webdriver.Chrome(executable_path= ruta+"/chromedriver.exe", options = options)
 
 	llistaNas = []
