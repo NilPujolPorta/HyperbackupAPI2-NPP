@@ -1,4 +1,5 @@
 import json
+from pickle import NONE
 import time
 from os.path import exists
 import os
@@ -11,7 +12,7 @@ import mysql.connector
 import yaml
 import wget
 
-__version__ ="0.1.2"
+__version__ ="0.1.3"
 
 def main(args=None):
 	ruta = os.path.dirname(os.path.abspath(__file__))
@@ -20,6 +21,7 @@ def main(args=None):
 	parser.add_argument('-q', '--quiet', help='Nomes mostra els errors i el missatge de acabada per pantalla.', action="store_false")
 	parser.add_argument('--json-file', help='La ruta(fitxer inclos) a on es guardara el fitxer de dades json. Per defecte es: '+rutaJson, default=rutaJson, metavar='RUTA')
 	parser.add_argument('-g', '--graphicUI', help='Mostra el navegador graficament.', action="store_false")
+	parser.add_argument('--portable-chrome-path', help="La ruta del executable de chrome", default=NONE, metavar="RUTA")
 	parser.add_argument('-v', '--versio', help='Mostra la versio', action='version', version='HyperBackupAPI-NPP v'+__version__)
 	args = parser.parse_args(args)
 	conf = ruta +"/config/config.yaml"
@@ -89,6 +91,8 @@ def main(args=None):
 
 
 	options = Options()
+	if args.portable_chrome_path != NONE:
+		options.binary_location = args.portable_chrome_path
 	if args.graphicUI:
 		options.headless = True
 		options.add_argument('--headless')
