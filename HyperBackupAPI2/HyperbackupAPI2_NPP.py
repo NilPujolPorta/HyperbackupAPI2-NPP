@@ -11,12 +11,12 @@ import mysql.connector
 import yaml
 import wget
 
-__version__ ="0.1.1"
+__version__ ="0.1.2"
 
 def main(args=None):
 	ruta = os.path.dirname(os.path.abspath(__file__))
 	rutaJson = ruta+"/dadesHyperBackup2.json"
-	parser = argparse.ArgumentParser(description='')
+	parser = argparse.ArgumentParser(description="Api per saber status de les copies d'hyperbackup")
 	parser.add_argument('-q', '--quiet', help='Nomes mostra els errors i el missatge de acabada per pantalla.', action="store_false")
 	parser.add_argument('--json-file', help='La ruta(fitxer inclos) a on es guardara el fitxer de dades json. Per defecte es: '+rutaJson, default=rutaJson, metavar='RUTA')
 	parser.add_argument('-g', '--graphicUI', help='Mostra el navegador graficament.', action="store_false")
@@ -100,19 +100,27 @@ def main(args=None):
 	llistaNas = []
 	#per cada nas fer login i accedir al hyperbackup
 	for nas in resultatbd:
-		browser.get(nas[2])
-		time.sleep(10)
-		usuari = browser.find_element(by="xpath", value='//*[@id="dsm-user-fieldset"]/div/div/div[1]/input')
-		usuari.send_keys(nas[0])
-		browser.find_element(by="xpath", value='//*[@id="sds-login-vue-inst"]/div/span/div/div[2]/div[2]/div/div[3]/div[2]/div/div[2]/div[3]').click()
-		time.sleep(5)
-		passwd = browser.find_element(by="xpath", value='//*[@id="dsm-pass-fieldset"]/div[1]/div/div[1]/input')
-		passwd.send_keys(nas[1])
-		browser.find_element(by="xpath", value='//*[@id="sds-login-vue-inst"]/div/span/div/div[2]/div[2]/div/div[3]/div[2]/div/div[2]/div[4]').click()
-		time.sleep(20)
-		hypericon=browser.find_element(by="xpath", value='//*[@id="sds-desktop-shortcut"]/div/li[7]')
-		hypericon.click()
-		time.sleep(10)
+		try:
+			browser.get(nas[2])
+			time.sleep(10)
+			usuari = browser.find_element(by="xpath", value='//*[@id="dsm-user-fieldset"]/div/div/div[1]/input')
+			usuari.send_keys(nas[0])
+			browser.find_element(by="xpath", value='//*[@id="sds-login-vue-inst"]/div/span/div/div[2]/div[2]/div/div[3]/div[2]/div/div[2]/div[3]').click()
+			time.sleep(5)
+			passwd = browser.find_element(by="xpath", value='//*[@id="dsm-pass-fieldset"]/div[1]/div/div[1]/input')
+			passwd.send_keys(nas[1])
+			browser.find_element(by="xpath", value='//*[@id="sds-login-vue-inst"]/div/span/div/div[2]/div[2]/div/div[3]/div[2]/div/div[2]/div[4]').click()
+			time.sleep(20)
+			hypericon=browser.find_element(by="xpath", value='//*[@id="sds-desktop-shortcut"]/div/li[7]')
+			hypericon.click()
+			time.sleep(10)
+		except Exception as e:
+			print("Error de connexio web")
+			now = datetime.datetime.now()
+			date_string = now.strftime('%Y-%m-%d--%H-%M-%S-json')
+			f = open(ruta+"/errorLogs/"+date_string+".txt",'w')
+			f.write("Error de connexio web\n"+str(e))
+			f.close()
 
 
 
