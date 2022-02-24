@@ -12,7 +12,7 @@ import mysql.connector
 import yaml
 import wget
 
-__version__ ="0.1.3"
+__version__ ="0.1.4"
 
 def main(args=None):
 	ruta = os.path.dirname(os.path.abspath(__file__))
@@ -98,7 +98,7 @@ def main(args=None):
 		options.add_argument('--headless')
 		options.add_argument('--disable-gpu')
 		options.add_argument('window-size=1720x980')
-	options.add_argument('log-level=2')#INFO = 0, WARNING = 1, LOG_ERROR = 2, LOG_FATAL = 3.
+	options.add_argument('log-level=3')#INFO = 0, WARNING = 1, LOG_ERROR = 2, LOG_FATAL = 3.
 	browser = webdriver.Chrome(executable_path= ruta+"/chromedriver.exe", options = options)
 
 	llistaNas = []
@@ -163,15 +163,17 @@ def main(args=None):
 		
 		llistaCopies = []
 		x = 0
-		print()
-		print(nas[2])
-		print("=================================")
-		print()
-		while x < len(nomsCopies):
-			print(nomsCopies[x])
-			print("Status ultima copia: " + (statusCopies[x]))
-			print("Ultima copia correcte: " + (ultimaCorrecte[x]))
+		if args.quiet:
 			print()
+			print(nas[2])
+			print("=================================")
+			print()
+		while x < len(nomsCopies):
+			if args.quiet:
+				print(nomsCopies[x])
+				print("Status ultima copia: " + (statusCopies[x]))
+				print("Ultima copia correcte: " + (ultimaCorrecte[x]))
+				print()
 			llistaCopies.append({"Nom":nomsCopies[x], "Status ultima copia":statusCopies[x], "Ultima copia correcte":ultimaCorrecte[x]})
 			x+=1
 		llistaNas.append({"nomNAS":nas[2], "copies":llistaCopies})
