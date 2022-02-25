@@ -9,6 +9,7 @@
 - Executar amb opcio -h per veure mes opcions i funcionalitats.
 
 ## Estructura de la base de dades
+En una Base de dades que es digui "hyperbackup2" un taula anomenada "credencials":
 ```
 
 "usuari" Usuari del NAS amb permisos de lectura al hyperbackup
