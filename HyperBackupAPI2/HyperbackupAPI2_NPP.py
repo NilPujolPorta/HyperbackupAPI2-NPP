@@ -12,7 +12,7 @@ import mysql.connector
 import yaml
 import wget
 
-__version__ ="0.1.4"
+__version__ ="0.1.5"
 
 def main(args=None):
 	ruta = os.path.dirname(os.path.abspath(__file__))
@@ -94,9 +94,9 @@ def main(args=None):
 	if args.portable_chrome_path != NONE:
 		options.binary_location = args.portable_chrome_path
 	if args.graphicUI:
-		options.headless = True
-		options.add_argument('--headless')
-		options.add_argument('--disable-gpu')
+		#options.headless = True
+		#options.add_argument('--headless')
+		#options.add_argument('--disable-gpu')
 		options.add_argument('window-size=1720x980')
 	options.add_argument('log-level=3')#INFO = 0, WARNING = 1, LOG_ERROR = 2, LOG_FATAL = 3.
 	browser = webdriver.Chrome(executable_path= ruta+"/chromedriver.exe", options = options)
@@ -104,9 +104,10 @@ def main(args=None):
 	llistaNas = []
 	#per cada nas fer login i accedir al hyperbackup
 	for nas in resultatbd:
+		llistaCopies = []
 		try:
 			browser.get(nas[2])
-			time.sleep(10)
+			time.sleep(15)
 			usuari = browser.find_element(by="xpath", value='//*[@id="dsm-user-fieldset"]/div/div/div[1]/input')
 			usuari.send_keys(nas[0])
 			browser.find_element(by="xpath", value='//*[@id="sds-login-vue-inst"]/div/span/div/div[2]/div[2]/div/div[3]/div[2]/div/div[2]/div[3]').click()
@@ -121,61 +122,62 @@ def main(args=None):
 		except Exception as e:
 			print("Error de connexio web")
 			now = datetime.datetime.now()
-			date_string = now.strftime('%Y-%m-%d--%H-%M-%S-json')
+			date_string = now.strftime('%Y-%m-%d--%H-%M-%S-errorWeb')
 			f = open(ruta+"/errorLogs/"+date_string+".txt",'w')
 			f.write("Error de connexio web\n"+str(e))
 			f.close()
+			llistaCopies.append({"Nom":nas[2], "Status ultima copia":"Error de connexio web", "Ultima copia correcte":"Error de connexio web"})
+		else:
+
+
+			#aconsegueix els noms de cada copia i els guarda en un array
+			nomsCopies = []
+			nomTots = browser.find_elements(by="class name", value="x-tree-node-anchor")
+			for nom in nomTots:
+				nomsCopies.append(nom.text)
 
 
 
-		#aconsegueix els noms de cada copia i els guarda en un array
-		nomsCopies = []
-		nomTots = browser.find_elements(by="class name", value="x-tree-node-anchor")
-		for nom in nomTots:
-			nomsCopies.append(nom.text)
+			#prep de variables
+			ultimaCorrecte = []
+			statusCopies = []
 
 
 
-		#prep de variables
-		ultimaCorrecte = []
-		statusCopies = []
+			#aconsegueix els elements del menu de l'esquerra i els posa en un array
+			roottreenode = browser.find_elements(by="class name", value="x-tree-node")
 
 
 
-		#aconsegueix els elements del menu de l'esquerra i els posa en un array
-		roottreenode = browser.find_elements(by="class name", value="x-tree-node")
-
-
-
-		#per cada element del menu de l'esquerra el clica i extreu les dades d'aquella copia
-		y=1
-		for treenode in roottreenode:
-			treenode.click()
-			time.sleep(2)
-			statusCopies.append(browser.find_element(by="xpath", value='/html/body/div[11]/div[14]/div[3]/div[1]/div/div/div/div[2]/div['+str(y)+']/div/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div').text)
-			if ((statusCopies[(y-1)]) != "Eliminando versiones de copia de seguridad...") and ((statusCopies[(y-1)]) !='Deleting backup versions...') and ((statusCopies[(y-1)]) !='Waiting...') and ((statusCopies[(y-1)]) !='Backing up...') and ((statusCopies[(y-1)]) !='Canceling...'):
-				ultimaCorrecte.append(browser.find_element(by="xpath", value='/html/body/div[11]/div[14]/div[3]/div[1]/div/div/div/div[2]/div['+str(y)+']/div/div/div[1]/div/div[2]/div/div/div[1]/div[2]/div[1]/div[2]/div/div/div[1]/span').text)
-			else:
-				ultimaCorrecte.append("Es sabra cuan acabi la copia actual")
-			y+=1
-		
-		#Mostra els resultats per pantalla 
-		
-		llistaCopies = []
-		x = 0
-		if args.quiet:
-			print()
-			print(nas[2])
-			print("=================================")
-			print()
-		while x < len(nomsCopies):
+			#per cada element del menu de l'esquerra el clica i extreu les dades d'aquella copia
+			y=1
+			for treenode in roottreenode:
+				treenode.click()
+				time.sleep(2)
+				statusCopies.append(browser.find_element(by="xpath", value='/html/body/div[11]/div[14]/div[3]/div[1]/div/div/div/div[2]/div['+str(y)+']/div/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div').text)
+				if ((statusCopies[(y-1)]) != "Eliminando versiones de copia de seguridad...") and ((statusCopies[(y-1)]) !='Deleting backup versions...') and ((statusCopies[(y-1)]) !='Waiting...') and ((statusCopies[(y-1)]) !='Backing up...') and ((statusCopies[(y-1)]) !='Canceling...'):
+					ultimaCorrecte.append(browser.find_element(by="xpath", value='/html/body/div[11]/div[14]/div[3]/div[1]/div/div/div/div[2]/div['+str(y)+']/div/div/div[1]/div/div[2]/div/div/div[1]/div[2]/div[1]/div[2]/div/div/div[1]/span').text)
+				else:
+					ultimaCorrecte.append("Es sabra cuan acabi la copia actual")
+				y+=1
+			
+			#Mostra els resultats per pantalla 
+			
+			
+			x = 0
 			if args.quiet:
-				print(nomsCopies[x])
-				print("Status ultima copia: " + (statusCopies[x]))
-				print("Ultima copia correcte: " + (ultimaCorrecte[x]))
 				print()
-			llistaCopies.append({"Nom":nomsCopies[x], "Status ultima copia":statusCopies[x], "Ultima copia correcte":ultimaCorrecte[x]})
-			x+=1
+				print(nas[2])
+				print("=================================")
+				print()
+			while x < len(nomsCopies):
+				if args.quiet:
+					print(nomsCopies[x])
+					print("Status ultima copia: " + (statusCopies[x]))
+					print("Ultima copia correcte: " + (ultimaCorrecte[x]))
+					print()
+				llistaCopies.append({"Nom":nomsCopies[x], "Status ultima copia":statusCopies[x], "Ultima copia correcte":ultimaCorrecte[x]})
+				x+=1
 		llistaNas.append({"nomNAS":nas[2], "copies":llistaCopies})
 
 
